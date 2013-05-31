@@ -46,9 +46,15 @@ void* hasherthread(void* user){
       pthread_mutex_unlock(&bestlock);
     }
 
+    //WARNING UGLY HACK
+    //MAY LOOP YOUR THREADS, EAT YOUR BABIES
     int i;
     for(i=0;i<128;i++){
       unsigned char c = (unsigned char)hash[i];
+      //replace any bytes in input which correspond to alphanumeric characters in hash
+      //with the corresponding bytes from hash.
+      //There is no guarantee this will not loop pretty quickly, but it doesn't seem to
+      //happen and this way is faster than random generator or hex-string-ifying hash.
       if((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122)){
 	input[i] = c;
       }
@@ -63,7 +69,7 @@ int main(int argc, char** argv){
   char** inputs = argv + 2;
   pthread_t threads[threadc];
   pthread_mutex_init(&bestlock, NULL);
-  //todo start threads
+
   int i;
   for(i=0;i<threadc;i++){
     pthread_create(&(threads[i]), NULL, hasherthread, inputs[i]);
